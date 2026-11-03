@@ -1,0 +1,27 @@
+name: Finalize old workflow-run cleanup (one-time)
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/one-time-run-cleanup.yml']
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  purge-old-runs:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Delete two remaining pre-rewrite run records
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GH_REPO" --jq '.private')" = true
+          for run_id in 41595111088 41595111029; do
+            gh api -X DELETE "repos/$GH_REPO/actions/runs/$run_id" --silent
+            echo "Deleted old workflow run $run_id"
+          done
