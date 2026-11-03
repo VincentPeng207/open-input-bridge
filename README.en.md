@@ -6,11 +6,20 @@
 
 **Important: the Windows receiver occupies TCP port `8766` by default.** If another application already uses it, **choose a different unused port yourself**, for example `.\start-windows.cmd --port 8767`. Open the freshly printed URL (with the **new port and token**) on Android. The receiver does not automatically select a new port or terminate unrelated programs. Allow the selected port only on a trusted private network.
 
+## Feedback, devices and real-world needs
+
+We'd love to learn about **the wireless controllers people actually use and the problems they want to solve**. You don't have to be using Open Input Bridge to share feedback. What Bluetooth rings, mini remotes, or other controllers have you tried? What would you like to control? What is frustrating about existing solutions?
+
+- **Public questions, ideas and device discussions:** [GitHub Discussions](https://github.com/VincentPeng207/open-input-bridge/discussions)
+- **QQ contact:** `2775818130` (for device experiences and user needs)
+
+Please do not share token-bearing URLs or private information in public discussions. Your feedback helps prioritize future device integrations and interactions.
+
 ## What works today
 
 The first integration is **LY-03 Bluetooth ring → Android phone (Open Input Bridge foreground App or foreground Chrome page) → trusted private LAN over HTTP/WebSocket → Windows Python receiver → keyboard shortcut**. The App and Chrome use the same browser event logic supplied by the Windows server.
 
-The Windows receiver and Android Chrome route have **historical physical-device success reports**, but this migrated repository still needs fresh end-to-end acceptance. **Android App source is now included, and CI can build an installable debug APK; its physical LY-03 input behavior is not yet verified.** iOS, macOS, Linux receivers and other hardware are not supported or tested.
+The Windows receiver and Android Chrome route have **historical physical-device success reports**, but this migrated repository still needs fresh end-to-end acceptance. **Android App source and a Release debug APK are available; a user reported successfully downloading and using the app on 2026-11-03, although detailed gesture and lifecycle acceptance testing remains incomplete.** iOS, macOS, Linux receivers and other hardware are not supported or tested.
 
 The middle button produces a configurable shortcut after a 300 ms single/double-click decision window; a detected quick double-click produces only Enter. Up/down actions map to eight ArrowUp/ArrowDown presses by default. Physical event detection depends on LY-03 firmware and Android input behavior: especially after device sleep, the first click may only wake the ring.
 
