@@ -6,14 +6,14 @@
 
 **Important: the Windows receiver occupies TCP port `8766` by default.** If another application already uses it, **choose a different unused port yourself**, for example `.\start-windows.cmd --port 8767`. Open the freshly printed URL (with the **new port and token**) on Android. The receiver does not automatically select a new port or terminate unrelated programs. Allow the selected port only on a trusted private network.
 
-## Feedback, devices and real-world needs
+## Discussion and support
 
-We'd love to learn about **the wireless controllers people actually use and the problems they want to solve**. You don't have to be using Open Input Bridge to share feedback. What Bluetooth rings, mini remotes, or other controllers have you tried? What would you like to control? What is frustrating about existing solutions?
+If you run into problems using Open Input Bridge or would like to discuss support for another input device, feel free to get in touch.
 
-- **Public questions, ideas and device discussions:** [GitHub Discussions](https://github.com/VincentPeng207/open-input-bridge/discussions)
-- **QQ contact:** `2775818130` (for device experiences and user needs)
+- **GitHub Discussions:** [Join the discussion](https://github.com/VincentPeng207/open-input-bridge/discussions)
+- **QQ:** `2775818130`
 
-Please do not share token-bearing URLs or private information in public discussions. Your feedback helps prioritize future device integrations and interactions.
+Please do not post token-bearing connection URLs or other private information.
 
 ## What works today
 
