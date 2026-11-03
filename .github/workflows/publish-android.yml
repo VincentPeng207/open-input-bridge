@@ -1,0 +1,103 @@
+name: Publish Android APK to GitHub Releases
+
+# A one-time bootstrap is triggered when this workflow file is first added.
+# Later preview releases are explicitly started using workflow_dispatch + a new tag.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-android.yml'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'New preview tag, e.g. android-v0.1.0-preview.2'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-android-${{ inputs.tag || 'android-v0.1.0-preview.1' }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ inputs.tag || 'android-v0.1.0-preview.1' }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate preview tag and prevent silent replacement
+        shell: bash
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^android-v[0-9]+\.[0-9]+\.[0-9]+-preview\.[0-9]+$ ]]; then
+            echo "::error::Expected an Android preview tag such as android-v0.1.0-preview.2"
+            exit 1
+          fi
+          if gh release view "$RELEASE_TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            echo "::error::Release $RELEASE_TAG already exists. Choose a new version; do not replace published binaries."
+            exit 1
+          fi
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Install Android SDK 35
+        shell: bash
+        run: |
+          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
+          test -n "$SDKMANAGER"
+          "$SDKMANAGER" 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Build Android debug APK from tagged source
+        working-directory: android
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Prepare downloadable APK and SHA256 checksum
+        shell: bash
+        run: |
+          mkdir -p release-assets
+          APK_NAME="Open-Input-Bridge-Android-${RELEASE_TAG}-debug.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "release-assets/$APK_NAME"
+          (cd release-assets && sha256sum "$APK_NAME" > SHA256SUMS.txt)
+          cat > release-notes.md <<'NOTES'
+          ## Open Input Bridge — Android test build / Android 测试版
+
+          **Status: preview, not production-ready / 预发布测试版，未完成真机验收。**
+
+          This is a foreground-only Android WebView client for the Open Input Bridge
+          Windows receiver. The LY-03 + Android App path still needs real-device
+          validation (including click/double-click, screen focus and sleep recovery).
+
+          这是 Android 前台 WebView 桥接 App。需要 Android 14+、同一可信私人
+          Wi-Fi、Windows 接收程序、当前运行生成的完整 token URL，以及已配对的 LY-03。
+          手机必须保持解锁、亮屏、App 处于最前台；不支持后台或锁屏桥接。
+
+          **Files / 文件：**
+          - `Open-Input-Bridge-Android-...-debug.apk` — debug-signed APK / 调试签名安装包
+          - `SHA256SUMS.txt` — SHA256 checksum / 校验文件
+          - `Source code (zip/tar.gz)` — source snapshot at this release tag /
+            与本版本关联的完整源码快照（包括 Android 工程与 Windows 服务端）
+
+          **Security / 安全：** uses plaintext HTTP/WebSocket on a trusted private LAN.
+          Never open the Windows listening port to the Internet or share the token URL.
+          This APK is not independently audited or guaranteed reproducible from source.
+
+          See README.md, README.en.md, android/README.md and SECURITY.md for setup.
+          NOTES
+      - name: Create prerelease with APK, checksum and GitHub source archives
+        shell: bash
+        run: |
+          gh release create "$RELEASE_TAG" \
+            "release-assets/Open-Input-Bridge-Android-${RELEASE_TAG}-debug.apk" \
+            release-assets/SHA256SUMS.txt \
+            --repo "$GH_REPO" \
+            --target "$GITHUB_SHA" \
+            --title "Android $RELEASE_TAG — debug preview" \
+            --notes-file release-notes.md \
+            --prerelease

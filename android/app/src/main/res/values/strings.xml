@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Open Input Bridge</string>
+    <string name="app_description">前台 WebView 桥接程序：使用可信私人局域网上的 Windows 服务和已配对的 LY-03 控制电脑。需要保持手机亮屏、解锁和桥接界面处于前台。不支持后台控制。</string>
+</resources>
